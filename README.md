@@ -27,12 +27,13 @@ This library implements the following generators:
 17. MWC128
 18. MWC192
 19. MWC256
-20. GMWC128
+20. GMWC128(*)
 21. GMWC256
 22. Splitmix64
 
 Each generator is seeded slightly differntly, but there is a common interface for all of them. Most can be seeded with 1, 2 or 3 64-bit unsigned integers, and all provide a default constructor that will seed them using the system's cryptographic rng.
 
+##### (*) GMWC128 does not support LongJump() in this implementation- there was a disagreement over the sequence generated between the original C code, the C++ code using the Boost MPC library and the C# code, so I left that functionality out. Jump() is still supported, however.
 ---
 
 Constructors will throw exceptions if used unseeded (0 or empty arrays), or if the passed arrays exceed the prescribed size limits (no silent ignore). The flags are provided to allow overriding this behavior should your use case require it.
