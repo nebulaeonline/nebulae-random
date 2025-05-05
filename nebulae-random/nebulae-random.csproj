@@ -15,10 +15,22 @@
       <RepositoryUrl>https://github.com/nebulaeonline/nebulae-random</RepositoryUrl>
       <RepositoryType>git</RepositoryType>
       <PackageProjectUrl>https://github.com/nebulaeonline/nebulae-random</PackageProjectUrl>
+      <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
+      <Title>Isaac64</Title>
+      <Copyright>© 2025 Nebulae Foundation, LLC</Copyright>
+      <PackageReadmeFile>docs\README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="System.Memory" Version="4.6.3" />
+      <None Include="..\README.md" Pack="true" PackagePath="docs"/>
   </ItemGroup>
+
+    <ItemGroup>
+        <None Include="..\README.md">
+            <Pack>True</Pack>
+            <PackagePath>\</PackagePath>
+        </None>
+    </ItemGroup>
 
 </Project>

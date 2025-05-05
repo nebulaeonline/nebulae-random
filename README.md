@@ -2,6 +2,7 @@
 
 ### A collection of random number generators for most every need.
 
+[![NuGet](https://img.shields.io/nuget/v/nebulae.rng.svg)](https://www.nuget.org/packages/nebulae.rng/)
 ---
 
 Implements a common interface for random number generation, similar to the older ISAAC64 library. The goal is to provide a simple and consistent interface for generating random numbers, no matter what the underlying generator is.
