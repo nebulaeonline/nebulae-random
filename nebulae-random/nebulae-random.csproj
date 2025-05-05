@@ -13,7 +13,8 @@
       <PackageTags>random prng rng xoshiro pcg gmwc mwc splitmix isaac mersenne twister ieee754 simulation</PackageTags>
       <PackageLicenseExpression>MIT</PackageLicenseExpression>
       <RepositoryUrl>https://github.com/nebulaeonline/nebulae-random</RepositoryUrl>
-      <RepositoryType>git</RepositoryType>      
+      <RepositoryType>git</RepositoryType>
+      <PackageProjectUrl>https://github.com/nebulaeonline/nebulae-random</PackageProjectUrl>
   </PropertyGroup>
 
   <ItemGroup>
