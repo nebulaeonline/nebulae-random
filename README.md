@@ -45,7 +45,7 @@ Constructors will throw exceptions if used unseeded (0 or empty arrays), or if t
 2. `RangedRandN(_size_ Min, _size_ Max)` methods return unsigned integers in the range [Min, Max]; the `RangedRandNS(_size_ Min, _size_ Max)` variants return signed integers instead
 3. `RandAlphaNum(bool Upper, bool Lower, bool Numeric, char[]? symbols)` generates a char using the range(s) specified, optionally also using the symbols array if provided (bias is eliminated in all cases)
 4. `RandDouble()` returns a 64-bit double-precision float in the range [0.0, 1.0)
-5. `RandDoubleRaw(double Min, double Max, double MinZero = 1e-3)` generates a double in the range (Min, Max) using the MinZero parameter as the defacto smallest number (see source for info)
+5. `RandDoubleRaw(double Min, double Max, double MinZero = 1e-4)` generates a double in the range (Min, Max) using the MinZero parameter as the defacto smallest number (see source for info)
 6. `Shuffle()` mixes & rotates the data and refills the RNG buffer (occurs automatically at mod 256 runs)
 7. `Reseed()` reseeds the RNG from ground zero at any time; has variants mirroring the class constructors
 8. `Clone()` returns a new instance of the Rng with a complete clone of the current RNG's state; this allows you to "fork" the RNG and run multiple independent RNGs, all of which will start with identical state from the point of Clone(). Useful for using the same RNG state in multiple functions or threads.
