@@ -57,7 +57,7 @@ Constructors will throw exceptions if used unseeded (0 or empty arrays), or if t
 1. `Next()`: returns a 32-bit unsigned integer in the range [0, 2^32)
 2. `Next(int Max)`: returns a 32-bit unsigned integer in the range [0, Max)
 3. `Next(int Min, int Max)`: returns a 32-bit unsigned integer in the range [Min, Max)
-4. `NextDouble()`: returns a 64-bit double precision floating point value in the range [0, 1)
+4. `NextDouble()`: returns a 64-bit double precision floating point value in the range [0.0, 1.0)
 
 When pulling a data type smaller than 64-bits, the remaining bytes of the 8-byte chunk are banked until you request that same type size again.
 
