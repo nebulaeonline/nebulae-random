@@ -2,7 +2,18 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <RootNamespace>nebulae_random</RootNamespace>
+    <RootNamespace>nebulae.rng</RootNamespace>
+      <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+      <Version>0.8.0</Version>
+      <PackageId>nebulae.rng</PackageId>
+      <Authors>Robert C. Horvath III</Authors>
+      <Company>Nebulae Foundation LLC</Company>
+      <Product>nebulae.rng</Product>
+      <Description>High-quality, verified random number generators including xoshiro, pcg, mwc, gmwc, isaac, and more.</Description>
+      <PackageTags>random prng rng xoshiro pcg gmwc mwc splitmix isaac mersenne twister ieee754 simulation</PackageTags>
+      <PackageLicenseExpression>MIT</PackageLicenseExpression>
+      <RepositoryUrl>https://github.com/nebulaeonline/nebulae-random</RepositoryUrl>
+      <RepositoryType>git</RepositoryType>      
   </PropertyGroup>
 
   <ItemGroup>
