@@ -49,12 +49,15 @@ Constructors will throw exceptions if used unseeded (0 or empty arrays), or if t
 6. `Shuffle()` mixes & rotates the data and refills the RNG buffer (occurs automatically at mod 256 runs)
 7. `Reseed()` reseeds the RNG from ground zero at any time; has variants mirroring the class constructors
 8. `Clone()` returns a new instance of the Rng with a complete clone of the current RNG's state; this allows you to "fork" the RNG and run multiple independent RNGs, all of which will start with identical state from the point of Clone(). Useful for using the same RNG state in multiple functions or threads.
+9. `Jump()` jumps the rng sequence ahead (usually by 2^64 or more) for parallel simulations using the same seed. Not supported by all generators.
+10. `LongJump()` jumps the rng sequence ahead (usually by 2^128 or more) for parallel simulations using the same seed. Not supported by all generators.
 
 ### Mimic of System.Random for 32-bit Ints:
 
 1. `Next()`: returns a 32-bit unsigned integer in the range [0, 2^32)
 2. `Next(int Max)`: returns a 32-bit unsigned integer in the range [0, Max)
 3. `Next(int Min, int Max)`: returns a 32-bit unsigned integer in the range [Min, Max)
+4. `NextDouble()`: returns a 64-bit double precision floating point value in the range [0, 1)
 
 When pulling a data type smaller than 64-bits, the remaining bytes of the 8-byte chunk are banked until you request that same type size again.
 
