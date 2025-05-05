@@ -34,12 +34,14 @@ This library implements the following generators:
 
 Each generator is seeded slightly differntly, but there is a common interface for all of them. Most can be seeded with 1, 2 or 3 64-bit unsigned integers, and all provide a default constructor that will seed them using the system's cryptographic rng.
 
-##### (*) GMWC128 does not support LongJump() in this implementation- there was a disagreement over the sequence generated between the original C code, the C++ code using the Boost MPC library and the C# code, so I left that functionality out. Jump() is still supported, however.
+#### (*) GMWC128 does not support LongJump() in this implementation- there was a disagreement over the sequence generated between the original C code, the C++ code using the Boost MPC library and the C# code, so I left that functionality out. Jump() is still supported, however.
 ---
 
 Constructors will throw exceptions if used unseeded (0 or empty arrays), or if the passed arrays exceed the prescribed size limits (no silent ignore). The flags are provided to allow overriding this behavior should your use case require it.
 
 ### Methods:
+
+The RangedRandN{S} functions support bias elimination via modulo sampling; more than one random may be burned in these functions if the generated number falls outside the mod range.
 
 1. `RandN(_size_ Max)`, where N is 64/32/16/8.  These methods return unsigned integers of the corresponding size in the range [0, Max]
 2. `RangedRandN(_size_ Min, _size_ Max)` methods return unsigned integers in the range [Min, Max]; the `RangedRandNS(_size_ Min, _size_ Max)` variants return signed integers instead
