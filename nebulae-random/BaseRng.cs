@@ -105,6 +105,18 @@ namespace nebulae.rng
         }
 
         /// <summary>
+        /// Rand64S() returns a signed 64-bit integer in the range [long.MinValue, Max] (inclusive)
+        /// </summary>
+        /// <param name="Max">long Max - the maximum random number to return</param>
+        /// <returns>ulong</returns>
+        public long Rand64S(long Max = 0)
+        {
+            var maxVal = (Max == 0) ? long.MaxValue : Max;
+
+            return RangedRand64S(long.MinValue, maxVal);
+        }
+
+        /// <summary>
         /// RangedRand64() returns an unsigned 64-bit integer in the range [Min, Max] (inclusive)
         /// </summary>
         /// <param name="Min">ulong Min - the minimum random number to return</param>
@@ -166,6 +178,18 @@ namespace nebulae.rng
 
             return (Max == 0) ? (uint)(ul >> 32) : (uint)(ul >> 32) % ++Max;
      
+        }
+
+        /// <summary>
+        /// Rand32S() returns a signed 32-bit integer in the range [int.MinValue, Max] (inclusive)
+        /// </summary>
+        /// <param name="Max">int Max - the maximum random number to return</param>
+        /// <returns>ulong</returns>
+        public long Rand32S(int Max = 0)
+        {
+            var maxVal = (Max == 0) ? int.MaxValue : Max;
+
+            return RangedRand32S(int.MinValue, maxVal);
         }
 
         /// <summary>
@@ -237,6 +261,17 @@ namespace nebulae.rng
             return (Max == 0) ? us2 : (ushort)((uint)us2 % ++Max);
         }
 
+        /// <summary>
+        /// Rand16S() returns a signed 16-bit integer in the range [short.MinValue, Max] (inclusive)
+        /// </summary>
+        /// <param name="Max">short Max - the maximum random number to return</param>
+        /// <returns>ulong</returns>
+        public long Rand16S(short Max = 0)
+        {
+            var maxVal = (Max == 0) ? short.MaxValue : Max;
+
+            return RangedRand16S(short.MinValue, maxVal);
+        }
 
         /// <summary>
         /// RangedRand16() returns an unsigned 16-bit integer in the range [Min, Max] (inclusive)
@@ -308,6 +343,17 @@ namespace nebulae.rng
             return (Max == 0) ? ub2 : (byte)((uint)ub2 % ++Max);
         }
 
+        /// <summary>
+        /// Rand8S() returns a signed 8-bit integer in the range [sbyte.MinValue, Max] (inclusive)
+        /// </summary>
+        /// <param name="Max">sbyte Max - the maximum random number to return</param>
+        /// <returns>ulong</returns>
+        public long Rand8S(sbyte Max = 0)
+        {
+            var maxVal = (Max == 0) ? sbyte.MaxValue : Max;
+
+            return RangedRand8S(sbyte.MinValue, maxVal);
+        }
 
         /// <summary>
         /// RangedRand8() returns an unsigned 8-bit integer in the range [Min, Max] (inclusive)
