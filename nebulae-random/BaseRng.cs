@@ -13,6 +13,8 @@ namespace nebulae.rng
         protected const ulong LOW16 = 0x0000_0000_0000_FFFF;
         protected const ulong LOW8 = 0x0000_0000_0000_00FF;
 
+        public const double MINZERO_DEFAULT = 1.0 / (1UL << 53);
+
         protected ConcurrentStack<uint> _banked32 = new ConcurrentStack<uint>();
         protected ConcurrentStack<ushort> _banked16 = new ConcurrentStack<ushort>();
         protected ConcurrentStack<byte> _banked8 = new ConcurrentStack<byte>();
@@ -88,7 +90,7 @@ namespace nebulae.rng
         /// </summary>
         public double NextDouble()
         {
-            return RandDouble();
+            return RandDoubleInclusiveZero();
         }
 
         /// <summary>
@@ -444,15 +446,53 @@ namespace nebulae.rng
         }
 
         /// <summary>
-        /// RandDouble() returns a double between [0.0, 1.0)
+        /// Returns a double in [0.0, 1.0) with full 53-bit precision.
+        /// Identical to RandUnitDoubleInclusiveZero, but named explicitly.
+        /// </summary>
+        public double RandDouble53()
+        {
+            return RandDoubleInclusiveZero();
+        }
+
+        /// <summary>
+        /// RandDouble() returns a double between (0.0, 1.0)
         /// </summary>
         /// <param name="minzero">double minzero - the minimum value which will be considered 0.0
-        /// to avoid range compression (default is 1.0e-4)</param>
+        /// to avoid range compression (default is 1.0 / (1UL << 53))</param>
         /// <returns>double</returns>
-        public double RandDouble(double minzero = 1.0e-4)
+        public double RandDoubleExclusiveZero()
         {
-            double d = RandDoubleRaw(1.0, 2.0, minzero) - 1.0;
-            return (d <= minzero) ? 0.0 : d;
+            return RandDoubleRaw(1.0, 2.0) - 1.0;
+        }
+
+        /// <summary>
+        /// Returns a double in the range [0.0, 1.0), inclusive of 0.0 but exclusive of 1.0.
+        /// This is the default behavior expected from most random float generators.
+        /// </summary>
+        public double RandDoubleInclusiveZero()
+        {
+            // This uses 53-bit precision, equivalent to Math.random() or C#'s Random.NextDouble()
+            ulong raw = Rand64() >> 11; // Take the top 53 bits
+            return raw / (double)(1UL << 53);
+        }
+
+        /// <summary>
+        /// Returns a double uniformly distributed between [Min, Max).
+        /// Uses linear interpolation between min and max.
+        /// </summary>
+        /// /// <param name="Min">sbyte Min - the minimum random number to return</param>
+        /// <param name="Max">sbyte Max - the maximum random number to return</param>
+        public double RandDoubleLinear(double Min, double Max)
+        {
+            if (double.IsNaN(Min) || double.IsNaN(Max))
+                throw new ArgumentException("NaN is not a valid bound.");
+
+            if (double.IsInfinity(Min) || double.IsInfinity(Max))
+                throw new ArgumentException("Infinity is not allowed.");
+
+            if (Min == Max) return Min;
+
+            return Min + (Max - Min) * RandDoubleInclusiveZero();
         }
 
         // RandDoubleRaw() handles subnormals, but Min & Max must both
@@ -498,6 +538,42 @@ namespace nebulae.rng
         // MinZero is the practical minimum when zero is part of the range
         // MinZero is +0 for subnormals
         // MinZero prevents range compression
+
+        /// <summary>
+        /// Generates a raw IEEE-754 double in the range [Min, Max), including subnormals,
+        /// by constructing the exponent and fraction fields directly.
+        /// This method provides precise control over floating point layout, including support for
+        /// subnormal values. It is intended for advanced use cases only.
+        /// </summary>
+        /// <param name="Min">The lower bound of the range (inclusive).</param>
+        /// <param name="Max">The upper bound of the range (exclusive).</param>
+        /// <param name="MinZero"> Defaults to MINZERO_DEFAULT (1.0 / (1UL << 53)).
+        /// The minimum nonzero threshold value; any generated number below this will be treated as 0.0.
+        /// This is used to avoid range compression near zero in normal space.
+        /// Should be carefully chosen when precision is important.
+        /// </param>
+        /// <returns>A randomly constructed IEEE-754 double within the specified range.</returns>
+        /// <exception cref="ArgumentException">
+        /// Thrown if:
+        /// - Min or Max is NaN or Infinity
+        /// - Min and Max span both normal and subnormal ranges
+        /// - Min > Max
+        /// </exception>
+        /// <remarks>
+        /// This function requires both Min and Max to be either **both normal** or **both subnormal**.
+        /// Mixing a normal and a subnormal will throw. You are responsible for ensuring this condition.
+        /// 
+        /// Poor selection of <paramref name="MinZero"/> can severely distort the resulting distribution,
+        /// especially near zero. If unsure, prefer 2^-53 (~1.11e-16) as a safe minimum for standard doubles.
+        /// 
+        /// If the requested range spans zero (e.g., Min < 0, Max > 0), this method will randomly select
+        /// sign and then construct a value toward either end. The distribution may be asymmetric unless
+        /// Min and Max have the same magnitude.
+        /// 
+        /// This method is extremely useful for precise control of random doubles, but should not be used
+        /// for general-purpose RNG. For that, use RandDouble{Inclusive, Exclusive}(), RandDoubleLinear(), 
+        /// or RandDouble53().
+        /// </remarks>
         public double RandDoubleRaw(double Min, double Max, double MinZero = 1e-4)
         {
             // No NaNs or INF

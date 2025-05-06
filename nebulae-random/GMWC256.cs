@@ -71,7 +71,7 @@ namespace nebulae.rng
         /// <returns>the constructed & seeded rng</returns>
         public override void Reseed()
         {
-            ulong[] seed = new ulong[2];
+            ulong[] seed = new ulong[3];
 
             lock (_lock)
             {

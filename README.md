@@ -69,35 +69,45 @@ Every generator has been tested against the default reference implementations pr
 
 Constructors will throw exceptions if used unseeded (0 or empty arrays). The flags are provided to allow overriding this behavior should your use case require it.
 
-### Methods:
+## Methods:
 
-#### Namespace is nebulae.rng
+### Namespace is nebulae.rng
 
-The RangedRandN{S} functions support bias elimination via modulo sampling; more than one random may be burned in these functions if the generated number falls outside the mod range.
+### Integer RNG Methods:
 
-1. `RandN(_size_ Max)`, where N is 64/32/16/8.  These methods return unsigned integers of the corresponding size in the range [0, Max]
-2. `RandNS(_size_ Max)` methods return signed integers in the range of [_size_.MinValue, _size_ Max] (i.e. between the signed type's minimum value and the specified Max value, inclusive).
-3. `RangedRandN(_size_ Min, _size_ Max)` methods return unsigned integers in the range [Min, Max]; the `RangedRandNS(_size_ Min, _size_ Max)` variants return signed integers instead
-4. `RandAlphaNum(bool Upper, bool Lower, bool Numeric, char[] symbols = null)` generates a char using the range(s) specified, optionally also using the symbols array if provided (bias is eliminated in all cases)
-5. `RandDouble()` returns a 64-bit double-precision float in the range [0.0, 1.0)
-6. `RandDoubleRaw(double Min, double Max, double MinZero = 1e-4)` generates a double in the range (Min, Max) using the MinZero parameter as the defacto smallest number (see below for info)
-7. `Reseed()` reseeds the RNG from ground zero at any time; has variants mirroring the class constructors
-8. `Clone()` returns a new instance of the Rng with a complete clone of the current RNG's state; this allows you to "fork" the RNG and run multiple independent RNGs, all of which will start with identical state from the point of Clone(). Useful for using the same RNG state in multiple functions or threads.
-9. `Jump()` jumps the rng sequence ahead (usually by 2^64 or more) for parallel simulations using the same seed. Not supported by all generators.
-10. `LongJump()` jumps the rng sequence ahead (usually by 2^128 or more) for parallel simulations using the same seed. Not supported by all generators.
+All integer functions support bias elimination using modulo rejection sampling. Multiple random numbers may be consumed (burned) if the generated value falls outside the acceptable modular range.
 
-### Mimic of System.Random API for 32-bit Ints:
+1. `RandN(_size_ Max)`, where N is 64/32/16/8. Returns an unsigned integer in the range [0, Max] (inclusive).
+2. `RandNS(_size_ Max)` Returns a signed integer in the range [T.MinValue, Max], where T is the signed integer type of _size_.
+3. `RangedRandN(_size_ Min, _size_ Max)` Returns an unsigned integer in the range [Min, Max].
+4. `RangedRandNS(_size_ Min, _size_ Max)` Returns a signed integer in the range [Min, Max].
+5. `RandAlphaNum(bool Upper, bool Lower, bool Numeric, char[] symbols = null)` Returns a random character based on the selected ranges (uppercase, lowercase, digits, or custom symbols). Bias is eliminated regardless of which options are selected.
+
+### Double RNG Methods:
+
+1. `RandDoubleExclusiveZero()` Uses full 53-bit precision. Excludes 0.0 to prevent edge cases in logarithmic or exponential sampling. Minzero defines the minimum representable nonzero value, defaulting to 2^-53 \~1.11e-16.
+2. `RandDoubleInclusiveZero()` Returns a double in the range [0.0, 1.0). This matches the behavior of System.Random.NextDouble() and includes 0.0.
+3. `RandDoubleLinear(double Min, double Max)` Returns a double in [Min, Max) using linear interpolation. Safe for general-purpose simulations and float-based algorithms.
+4. `RandDoubleRaw(double Min, double Max, double MinZero = MINZERO_DEFAULT)` Constructs a raw IEEE-754 double between min and max. Gives full control over sign, exponent, and mantissa layout. Both min and max must be either normal or subnormal doubles. Mixing types throws. Not intended for casual use � this is a precision tool.
+5. `RandDouble53()` Equivalent to RandDoubleInclusiveZero(). Returns a 53-bit mantissa float in [0.0, 1.0).
+
+MINZERO_DEFAULT is available as a public constant in each RNG and is equal to 1.0 / (1 << 53) or \~1.11e-16.
+
+### RNG State Control Methods:
+
+1. `Reseed()` Reseeds the generator from scratch, optionally with a user-specified seed or entropy source.
+2. `Clone()` Returns a new RNG instance with a cloned internal state. Useful for deterministic replay or parallel simulations that must diverge from a common state.
+3. `Jump()` Advances the generator's state (usually by 2^64 or more). Ideal for creating independent substreams in parallel simulations. Not supported by all generators.
+4. `LongJump()` Advances the generator's state (usually by 2^128 or more). Not supported by all generators.
+
+### System.Random Compatibility:
 
 1. `Next()`: returns a 32-bit unsigned integer in the range [0, 2^32)
 2. `Next(int Max)`: returns a 32-bit unsigned integer in the range [0, Max)
 3. `Next(int Min, int Max)`: returns a 32-bit unsigned integer in the range [Min, Max)
-4. `NextDouble()`: returns a 64-bit double precision floating point value in the range [0.0, 1.0)
+4. `NextDouble()`: Returns a double in [0.0, 1.0). Internally calls RandDoubleInclusiveZero().
 
 #### When pulling a data type smaller than 64-bits, the remaining bytes of the 8-byte chunk are banked until you request that same type size again.
-
-### Notes on Random Doubles:
-
-All doubles pull a 64-bit integer for the mantissa (fraction). Regular doubles may also pull a 16-bit integer for the sign bit and a 32-bit integer for the exponent. If the specified Min & Max are the same sign, no integer is pulled; likewise, if Min & Max share a common exponent, no integer will be pulled. Subnormal doubles (extremely small < +/- 10^-308) will never pull an integer for their exponent, and may or may not pull an integer for their sign, exactly the same as regular doubles. Because of the range compression inherent in the ieee754 encoding of floating point doubles (there are many more values close to zero), you can specify a minimum value (MinZero) that is the cutoff for what should be considered *zero*. The library defaults to 1e-4, but RandomDoubleRaw() will let you specify.
 
 ---
 
