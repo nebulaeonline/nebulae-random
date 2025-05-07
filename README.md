@@ -2,13 +2,15 @@
 
 ### A collection of random number generators for most every need.
 
+All RNGs in nebulae-rng pass a 10 million-sample bucket uniformity test across 100 bins with <1.2% max deviation (most are generally <1.0%). This includes 64-bit integer sampling via bias-free rejection methods and high-resolution floating point generation using full 53-bit precision.
+
 [![NuGet](https://img.shields.io/nuget/v/nebulae.rng.svg)](https://www.nuget.org/packages/nebulae.rng/)
 
 #### [Nuget Package](https://www.nuget.org/packages/nebulae.rng/)
 
 ---
 
-Implements a common interface for random number generation, similar to our older ISAAC64 library. The goal is to provide a simple and consistent interface for generating random numbers, no matter what the underlying generator is. With this library, you can try several different generators by simply switching up the constructor.
+nebaule-random implements a common interface for random number generation, similar to our older ISAAC64 library. The goal is to provide a simple and consistent interface for generating random numbers, no matter what the underlying generator is. With this library, you can try several different generators by simply switching up the constructor.
 
 ---
 
@@ -137,6 +139,21 @@ var random_double = rng2.NextDouble();
 // Using System.Random API
 var next = rng2.Next();       // [0, uint.MaxValue)
 var next2 = rng2.Next(0x5555) // [0, 0x5555)
+
+// Jump functions
+Xoshiro1024plusplus rng = new Xoshiro1024plusplus();
+var rng2 = rng.Clone();
+var rng3 = rng.Clone();
+var rng4 = rng.Clone();
+
+// Demonstration
+rng.LongJump(); // advance 2^384 iterations
+rng2.Jump(); // advance 2^256 iterations
+rng3.Jump(); rng3.Jump(); // etc.
+rng4.Jump(); rng4.Jump(); rng4.Jump(); // etc.
+
+// now rng2, rng3 & rng4 are equally spaced by 2^256 steps each,
+// and rng is spaced out to 2^384 steps from the start, all with the same seed.
 
 ```
 ---
