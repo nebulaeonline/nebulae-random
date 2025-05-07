@@ -2,7 +2,7 @@
 
 ### A collection of random number generators for most every need.
 
-All RNGs in nebulae-rng pass a 10 million-sample bucket uniformity test across 100 bins with <1.2% max deviation (most are generally <1.0%). This includes 64-bit integer sampling via bias-free rejection methods and high-resolution floating point generation using full 53-bit precision.
+All RNGs in nebulae-random pass a 10 million-sample bucket uniformity test across 100 bins with <1.2% max deviation (most are generally <1.0%). This includes 64-bit integer sampling via bias-free rejection methods and high-resolution floating point generation using full 53-bit precision.
 
 [![NuGet](https://img.shields.io/nuget/v/nebulae.rng.svg)](https://www.nuget.org/packages/nebulae.rng/)
 
