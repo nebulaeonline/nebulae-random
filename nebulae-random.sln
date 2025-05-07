@@ -14,6 +14,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "nebulae-random-tests", "nebulae-random-tests\nebulae-random-tests.csproj", "{D0CBB8E0-D523-480D-929F-6B8B09D63732}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DumpRng", "DumpRng\DumpRng.csproj", "{7E67B1FE-5746-43B0-9F9D-E79698C840D8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -28,9 +30,16 @@ Global
 		{D0CBB8E0-D523-480D-929F-6B8B09D63732}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0CBB8E0-D523-480D-929F-6B8B09D63732}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D0CBB8E0-D523-480D-929F-6B8B09D63732}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E67B1FE-5746-43B0-9F9D-E79698C840D8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E67B1FE-5746-43B0-9F9D-E79698C840D8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E67B1FE-5746-43B0-9F9D-E79698C840D8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E67B1FE-5746-43B0-9F9D-E79698C840D8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{7E67B1FE-5746-43B0-9F9D-E79698C840D8} = {8EC462FD-D22E-90A8-E5CE-7E832BA40C5D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7302538F-ECE4-46F9-AE87-AA770148608F}
