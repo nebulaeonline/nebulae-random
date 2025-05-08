@@ -91,7 +91,7 @@ All integer functions support bias elimination using modulo rejection sampling. 
 1. `RandDoubleExclusiveZero()` Uses full 53-bit precision. Excludes 0.0 to prevent edge cases in logarithmic or exponential sampling. Minzero defines the minimum representable nonzero value, defaulting to 2^-53 \~1.11e-16.
 2. `RandDoubleInclusiveZero()` Returns a double in the range [0.0, 1.0). This matches the behavior of System.Random.NextDouble() and includes 0.0.
 3. `RandDoubleLinear(double Min, double Max)` Returns a double in [Min, Max) using linear interpolation. Safe for general-purpose simulations and float-based algorithms.
-4. `RandDoubleRaw(double Min, double Max, double MinZero = MINZERO_DEFAULT)` Constructs a raw IEEE-754 double between min and max. Gives full control over sign, exponent, and mantissa layout. Both min and max must be either normal or subnormal doubles. Mixing types throws. Not intended for casual use � this is a precision tool.
+4. `RandDoubleRaw(double Min, double Max, double MinZero = MINZERO_DEFAULT)` Constructs a raw IEEE-754 double between min and max. Gives full control over sign, exponent, and mantissa layout. Both min and max must be either normal or subnormal doubles. Mixing types throws. Not intended for casual use; this is a precision tool.
 5. `RandDouble53()` Equivalent to RandDoubleInclusiveZero(). Returns a 53-bit mantissa float in [0.0, 1.0).
 
 MINZERO_DEFAULT is available as a public constant in each RNG and is equal to 1.0 / (1 << 53) or \~1.11e-16.
