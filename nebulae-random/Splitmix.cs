@@ -51,22 +51,22 @@ namespace nebulae.rng
         /// Splitmix() constructs the rng object and seeds the rng with the given 64-bit unsigned integer
         /// </summary>
         /// <param name="seed">ulong seed - the seed, as a 64-bit unsigned integer, to use to seed the rng</param>
-        /// <param name="ignoreZeroSeed">bool ignoreZeroSeed - don't throw an exception if 0 is passed as a seed</param>
+        /// <param name="allowZeroSeed">bool allowZeroSeed - don't throw an exception if 0 is passed as a seed</param>
         /// <returns>the constructed & seeded rng</returns>
-        public Splitmix(ulong seed, bool ignoreZeroSeed = false)
+        public Splitmix(ulong seed, bool allowZeroSeed = false)
         {
-            Reseed(seed, ignoreZeroSeed);
+            Reseed(seed, allowZeroSeed);
         }
 
         /// <summary>
         /// Reseed() re-seeds the rng with the given 64-bit unsigned integer
         /// </summary>
         /// <param name="seed">ulong seed - the seed, as a 64-bit unsigned integer, to use to seed the rng</param>
-        /// <param name="ignoreZeroSeed">bool ignoreZeroSeed - don't throw an exception if 0 is passed as a seed</param>
-        public void Reseed(ulong seed, bool ignoreZeroSeed)
+        /// <param name="allowZeroSeed">bool allowZeroSeed - don't throw an exception if 0 is passed as a seed</param>
+        public void Reseed(ulong seed, bool allowZeroSeed)
         {
-            if (seed == 0 && !ignoreZeroSeed)
-                throw new ArgumentException("Seed cannot be zero unless ignoreZeroSeed is true.");
+            if (seed == 0 && !allowZeroSeed)
+                throw new ArgumentException("Seed cannot be zero unless allowZeroSeed is true.");
 
             _state = seed;
         }

@@ -56,7 +56,7 @@ namespace nebulae.rng
         /// <param name="seed_lo">ulong seed_lo - the lower 64-bits of the 128-bit seed to use to seed the rng</param>
         /// <param name="seed_mid">ulong seed_mid - the middle 64-bits of the 128-bit seed to use to seed the rng</param>
         /// <param name="seed_hi">ulong seed_hi - the upper 64-bits of the 128-bit seed to use to seed the rng</param>
-        /// <param name="ignoreZeroSeed">bool IgnoreZeroSeed - don't throw an exception if seeding with 0</param>
+        /// <param name="allowZeroSeed">bool allowZeroSeed - don't throw an exception if seeding with 0</param>
         /// <returns>the constructed & seeded rng</returns>
         public GMWC256(ulong seed_lo, ulong seed_mid, ulong seed_hi, bool allowZeroSeed = false)
         {
@@ -95,7 +95,7 @@ namespace nebulae.rng
         /// <param name="seed_lo">ulong seed_lo - the lower 64-bits of the 128-bit seed to use to seed the rng</param>
         /// <param name="seed_mid">ulong seed_mid - the middle 64-bits of the 128-bit seed to use to seed the rng</param>
         /// <param name="seed_hi">ulong seed_hi - the upper 64-bits of the 128-bit seed to use to seed the rng</param>
-        /// <param name="ignoreZeroSeed">bool IgnoreZeroSeed - don't throw an exception if seeding with 0</param>
+        /// <param name="allowZeroSeed">bool allowZeroSeed - don't throw an exception if seeding with 0</param>
         /// <returns>the constructed & seeded rng</returns>
         /// <exception cref="ArgumentException">if allowZeroSeed is false and seed is 0</exception>"
         public void Reseed(ulong seed_lo, ulong seed_mid, ulong seed_hi, bool allowZeroSeed = false)

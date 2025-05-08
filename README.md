@@ -54,12 +54,13 @@ Further reading:
 14. Mersenne Twister (MT19937) 32-bit
 15. Mersenne Twister (MT19937) 64-bit
 16. PCG32
-17. MWC128
-18. MWC192
-19. MWC256
-20. GMWC128(*)
-21. GMWC256
-22. Splitmix64
+17. PCG64 
+18. MWC128
+19. MWC192
+20. MWC256
+21. GMWC128(*)
+22. GMWC256
+23. Splitmix64
 
 Each generator is seeded slightly differntly, but there is a common interface for all of them. Most can be seeded with 1, 2 or 3 64-bit unsigned integers, and all provide a default constructor that will seed them using the system's cryptographic rng.
 

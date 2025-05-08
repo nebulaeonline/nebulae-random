@@ -124,11 +124,11 @@ namespace nebulae.rng
         /// Isaac64() constructs the rng object and seeds the rng
         /// </summary>
         /// <param name="numericSeed">ulong NumericSeed - the seed to use to seed the rng</param>
-        /// <param name="ignoreZeroSeed">bool IgnoreZeroSeed - don't throw an exception if seeding with 0</param>
+        /// <param name="allowZeroSeed">bool allowZeroSeed - don't throw an exception if seeding with 0</param>
         /// <returns>the constructed & seeded rng</returns>
-        public Isaac64(ulong numericSeed, bool ignoreZeroSeed = false)
+        public Isaac64(ulong numericSeed, bool allowZeroSeed = false)
         {
-            Reseed(numericSeed, ignoreZeroSeed);
+            Reseed(numericSeed, allowZeroSeed);
         }
 
         /// <summary>
@@ -218,17 +218,17 @@ namespace nebulae.rng
         /// Reseed() reseeds the rng
         /// </summary>
         /// <param name="numericSeed">ulong NumericSeed - the seed to use to seed the rng</param>
-        /// <param name="ignoreZeroSeed">bool IgnoreZeroSeed - don't throw an exception if seeding with 0</param>
+        /// <param name="allowZeroSeed">bool allowZeroSeed - don't throw an exception if seeding with 0</param>
         /// <returns>none</returns>
-        public void Reseed(ulong numericSeed, bool ignoreZeroSeed = false)
+        public void Reseed(ulong numericSeed, bool allowZeroSeed = false)
         {
             lock (_lock)
             {
                 clear_state();
-                if (ignoreZeroSeed && numericSeed == 0)
+                if (allowZeroSeed && numericSeed == 0)
                     init(true);
                 else if (numericSeed == 0)
-                    throw new ArgumentException("Rng seeded with 0 value. Set the IgnoreZeroSeed parameter if this behavior is desired.");
+                    throw new ArgumentException("Rng seeded with 0 value. Set the allowZeroSeed parameter if this behavior is desired.");
                 else
                 {
                     _ctx.rng_buf[0] = numericSeed;

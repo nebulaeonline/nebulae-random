@@ -49,7 +49,7 @@ namespace nebulae.rng
         /// </summary>
         /// <param name="seed">ulong seed - the 64-bit seed to use to seed the rng</param>
         /// <param name="seq">ulong seq - the 64-bits sequence selector to use to seed the rng</param>
-        /// <param name="ignoreZeroSeed">bool IgnoreZeroSeed - don't throw an exception if seeding with 0</param>
+        /// <param name="allowZeroSeed">bool allowZeroSeed - don't throw an exception if seeding with 0</param>
         /// <returns>the constructed & seeded rng</returns>
         public PCG32(ulong seed, ulong seq, bool allowZeroSeed = false)
         {
@@ -87,7 +87,7 @@ namespace nebulae.rng
         /// </summary>
         /// <param name="seed">ulong seed - the 64-bit seed to use to seed the rng</param>
         /// <param name="seq">ulong seq - the 64-bits sequence selector to use to seed the rng</param>
-        /// <param name="ignoreZeroSeed">bool IgnoreZeroSeed - don't throw an exception if seeding with 0</param>
+        /// <param name="allowZeroSeed">bool allowZeroSeed - don't throw an exception if seeding with 0</param>
         /// <exception cref="ArgumentException">if allowZeroSeed is false and seed is 0</exception>"
         public void Reseed(ulong seed, ulong seq, bool allowZeroSeed = false)
         {

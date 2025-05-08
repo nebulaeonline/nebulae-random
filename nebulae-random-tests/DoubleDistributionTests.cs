@@ -26,6 +26,7 @@ namespace nebulae.rng.tests
             yield return new object[] { "Xoshiro1024*", new Xoshiro1024star() };
             yield return new object[] { "Xoshiro1024**", new Xoshiro1024starstar() };
             yield return new object[] { "PCG32", new PCG32() };
+            yield return new object[] { "PCG64", new PCG64() };
             yield return new object[] { "ISAAC64", new Isaac64() };
             yield return new object[] { "MWC128", new MWC128() };
             yield return new object[] { "MWC192", new MWC192() };

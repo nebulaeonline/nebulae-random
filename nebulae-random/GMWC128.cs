@@ -52,7 +52,7 @@ namespace nebulae.rng
         /// GMWC128() constructs the rng object and seeds the rng
         /// </summary>
         /// <param name="seed">ulong seed - the seed to use to seed the rng</param>
-        /// <param name="ignoreZeroSeed">bool IgnoreZeroSeed - don't throw an exception if seeding with 0</param>
+        /// <param name="allowZeroSeed">bool allowZeroSeed - don't throw an exception if seeding with 0</param>
         /// <returns>the constructed & seeded rng</returns>
         public GMWC128(ulong seed, bool allowZeroSeed = false)
         {
