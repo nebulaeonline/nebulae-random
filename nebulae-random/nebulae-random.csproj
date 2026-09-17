@@ -17,7 +17,7 @@
       <PackageProjectUrl>https://github.com/nebulaeonline/nebulae-random</PackageProjectUrl>
       <AllowUnsafeBlocks>False</AllowUnsafeBlocks>
       <Title>Isaac64</Title>
-      <Copyright>© 2025 Nebulae Foundation, LLC</Copyright>
+      <Copyright>© 2025-2026 Nebulae Foundation, LLC</Copyright>
       <PackageReadmeFile>docs\README.md</PackageReadmeFile>
   </PropertyGroup>
     
