@@ -18,9 +18,6 @@ namespace nebulae.rng
         private ulong mti = N + 1; // mti==N+1 means mt[N] is not initialized
         private ulong[] mag01 = new ulong[2] { 0UL, MATRIX_A };
 
-        // concurrency lock
-        private readonly object _lock = new object();
-
         /// <summary>
         /// Clone() clones the internal context of the rng object and returns a new rng object
         /// This is useful to split the same rng object into multiple rng objects to take
@@ -37,7 +34,8 @@ namespace nebulae.rng
             {
                 copy = new MT19937_32(); // testing constructor; does not reseed
 
-                copy.mt = mt;
+                copy.mt = (ulong[])mt.Clone();
+                CopyBanksTo(copy);
                 copy.mti = mti;
             }
             return copy;
@@ -94,6 +92,7 @@ namespace nebulae.rng
 #endif
             lock (_lock)
             {
+                ClearBanks();
                 var bytes_array = MemoryMarshal.Cast<byte, ulong>(bytes);
                 
                 seed = bytes_array[0];
@@ -110,6 +109,7 @@ namespace nebulae.rng
         {
             lock (_lock)
             {
+                ClearBanks();
                 int i, j, k;
                 Reseed(19650218UL);
                 
@@ -148,6 +148,7 @@ namespace nebulae.rng
 
             lock (_lock)
             {
+                ClearBanks();
                 mt[0] = seed & 0xFFFFFFFFUL;
 
                 for (mti = 1; mti < N; mti++)

@@ -12,7 +12,6 @@ namespace nebulae.rng
         private ulong _state;
         private ulong _inc;
 
-        private static readonly object _lock = new object();
 
         /// <summary>
         /// Clone() clones the internal context of the rng object and returns a new rng object
@@ -29,6 +28,7 @@ namespace nebulae.rng
                 PCG32 clone = new PCG32();
                 clone._state = _state;
                 clone._inc = _inc;
+                CopyBanksTo(clone);
                 return clone;
             }
         }
@@ -53,7 +53,7 @@ namespace nebulae.rng
         /// <returns>the constructed & seeded rng</returns>
         public PCG32(ulong seed, ulong seq, bool allowZeroSeed = false)
         {
-            Reseed(seed, seq);
+            Reseed(seed, seq, allowZeroSeed);
         }
 
         /// <summary>
@@ -68,6 +68,7 @@ namespace nebulae.rng
 
             lock (_lock)
             {
+                ClearBanks();
                 for (int i = 0; i < 2; ++i)
                 {
                     byte[] seedBytes = new byte[8];
@@ -96,6 +97,7 @@ namespace nebulae.rng
 
             lock (_lock)
             {
+                ClearBanks();
                 _state = 0;
                 _inc = (seq << 1) | 1;
                 NextRaw32();

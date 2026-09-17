@@ -8,12 +8,11 @@ namespace nebulae.rng
     public class PCG64 : BaseRng
     {
         private readonly BigInteger PCG_DEFAULT_MULTIPLIER_128 = ((BigInteger)2549297995355413924UL << 64) | 4865540595714422341UL;
-        private readonly BigInteger PCG_DEFAULT_INCREMENT_128 = ((BigInteger)6364136223846793005UL << 64) | 1442695040888963407UL;
+        private static readonly BigInteger StateMask = (BigInteger.One << 128) - 1;
 
         private BigInteger _state;
         private BigInteger _inc;
 
-        private static readonly object _lock = new object();
 
         /// <summary>
         /// Clone() clones the internal context of the rng object and returns a new rng object
@@ -30,6 +29,7 @@ namespace nebulae.rng
                 PCG64 clone = new PCG64();
                 clone._state = _state;
                 clone._inc = _inc;
+                CopyBanksTo(clone);
                 return clone;
             }
         }
@@ -86,6 +86,7 @@ namespace nebulae.rng
 
             lock (_lock)
             {
+                ClearBanks();
                 for (int i = 0; i < 4; ++i)
                 {
                     byte[] seedBytes = new byte[32];
@@ -117,6 +118,7 @@ namespace nebulae.rng
 
             lock (_lock)
             {
+                ClearBanks();
                 PcgSetSeq128SRandomR(seed, seq);
             }
         }
@@ -139,7 +141,8 @@ namespace nebulae.rng
         /// </summary>
         public override void Jump()
         {
-            Advance(BigInteger.One, PCG_DEFAULT_MULTIPLIER_128, PCG_DEFAULT_INCREMENT_128);
+            lock (_lock)
+                Advance(BigInteger.One << 64, PCG_DEFAULT_MULTIPLIER_128, _inc);
         }
 
         /// <summary>
@@ -147,7 +150,8 @@ namespace nebulae.rng
         /// </summary>
         public override void LongJump()
         {
-            Advance(BigInteger.One << 32, PCG_DEFAULT_MULTIPLIER_128, PCG_DEFAULT_INCREMENT_128);
+            lock (_lock)
+                Advance(BigInteger.One << 96, PCG_DEFAULT_MULTIPLIER_128, _inc);
         }
 
         public static ulong PcgRotateRight64(ulong value, int rot)
@@ -158,7 +162,7 @@ namespace nebulae.rng
 
         private void PcgSetSeq128StepR()
         {
-            _state = (_state * PCG_DEFAULT_MULTIPLIER_128) + _inc;
+            _state = ((_state * PCG_DEFAULT_MULTIPLIER_128) + _inc) & StateMask;
         }
 
         private ulong PcgOutputXslRotateRight128_64()
@@ -173,9 +177,9 @@ namespace nebulae.rng
         private void PcgSetSeq128SRandomR(BigInteger initstate, BigInteger initseq)
         {
             _state = 0;
-            _inc = (initseq << 1) | 1; // the sequence selector must be odd
+            _inc = ((initseq << 1) | 1) & StateMask; // the sequence selector must be odd
             PcgSetSeq128StepR();
-            _state += initstate;
+            _state = (_state + initstate) & StateMask;
             PcgSetSeq128StepR();
 
         }
@@ -190,23 +194,30 @@ namespace nebulae.rng
 
         public void Advance(BigInteger delta, BigInteger multiplier, BigInteger increment)
         {
-            BigInteger acc_mult = BigInteger.One; // a^0 == 1
-            BigInteger acc_plus = 0;
-
-            while (!delta.Equals(0))
+            if (delta.Sign < 0) throw new ArgumentOutOfRangeException(nameof(delta));
+            lock (_lock)
             {
-                if ((delta & 1) != 0)
+                if (delta.IsZero) return;
+                BigInteger acc_mult = BigInteger.One;
+                BigInteger acc_plus = 0;
+                multiplier &= StateMask;
+                increment &= StateMask;
+
+                while (!delta.IsZero)
                 {
-                    acc_mult = acc_mult * multiplier;
-                    acc_plus = acc_plus * multiplier + increment;
+                    if (!delta.IsEven)
+                    {
+                        acc_mult = (acc_mult * multiplier) & StateMask;
+                        acc_plus = (acc_plus * multiplier + increment) & StateMask;
+                    }
+
+                    increment = ((multiplier + BigInteger.One) * increment) & StateMask;
+                    multiplier = (multiplier * multiplier) & StateMask;
+                    delta >>= 1;
                 }
-
-                increment = (multiplier + BigInteger.One) * increment;
-                multiplier = multiplier * multiplier;
-                delta >>= 1;
+                _state = (acc_mult * _state + acc_plus) & StateMask;
+                ClearBanks();
             }
-
-            _state = acc_mult * _state + acc_plus;
         }
     }
 }

@@ -14,7 +14,6 @@ namespace nebulae.rng
         private ulong _x;
         private ulong _c;
 
-        private static readonly object _lock = new object();
 
         /// <summary>
         /// Clone() clones the internal context of the rng object and returns a new rng object
@@ -31,6 +30,7 @@ namespace nebulae.rng
                 MWC128 clone = new MWC128();
                 clone._x = _x;
                 clone._c = _c;
+                CopyBanksTo(clone);
                 return clone;
             }
         }
@@ -54,7 +54,7 @@ namespace nebulae.rng
         /// <returns>the constructed & seeded rng</returns>
         public MWC128(ulong seed, bool allowZeroSeed = false)
         {
-            Reseed(seed);
+            Reseed(seed, allowZeroSeed);
         }
 
         /// <summary>
@@ -67,6 +67,7 @@ namespace nebulae.rng
         {
             lock (_lock)
             {
+                ClearBanks();
                 byte[] seedBytes = new byte[8];
 
                 using (var rng = RandomNumberGenerator.Create())
@@ -94,6 +95,7 @@ namespace nebulae.rng
 
             lock (_lock)
             {
+                ClearBanks();
                 _x = seed;
                 _c = 1;
             }
@@ -126,6 +128,7 @@ namespace nebulae.rng
         {
             lock (_lock)
             {
+                ClearBanks();
                 // Constants
                 BigInteger b = BigInteger.One << 64;
                 BigInteger m = (BigInteger)MWC_A1 * b - 1;
@@ -150,6 +153,7 @@ namespace nebulae.rng
         {
             lock (_lock)
             {
+                ClearBanks();
                 BigInteger b = BigInteger.One << 64;
                 BigInteger m = (BigInteger)MWC_A1 * b - 1;
 

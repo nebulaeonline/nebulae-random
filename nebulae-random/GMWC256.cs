@@ -16,7 +16,6 @@ namespace nebulae.rng
         public ulong _z;
         public ulong _c;
 
-        private static readonly object _lock = new object();
 
         /// <summary>
         /// Clone() clones the internal context of the rng object and returns a new rng object
@@ -35,6 +34,7 @@ namespace nebulae.rng
                 clone._y = _y;
                 clone._z = _z;
                 clone._c = _c;
+                CopyBanksTo(clone);
                 return clone;
             }
         }
@@ -60,7 +60,7 @@ namespace nebulae.rng
         /// <returns>the constructed & seeded rng</returns>
         public GMWC256(ulong seed_lo, ulong seed_mid, ulong seed_hi, bool allowZeroSeed = false)
         {
-            Reseed(seed_lo, seed_mid, seed_hi);
+            Reseed(seed_lo, seed_mid, seed_hi, allowZeroSeed);
         }
 
         /// <summary>
@@ -75,6 +75,7 @@ namespace nebulae.rng
 
             lock (_lock)
             {
+                ClearBanks();
                 for (int i = 0; i < 3; ++i)
                 {
                     byte[] seedBytes = new byte[8];
@@ -105,6 +106,7 @@ namespace nebulae.rng
 
             lock (_lock)
             {
+                ClearBanks();
                 _x = seed_lo;
                 _y = seed_mid;
                 _z = seed_hi;
@@ -138,6 +140,7 @@ namespace nebulae.rng
         {
             lock (_lock)
             {
+                ClearBanks();
                 InternalJump("7f37803efa1e1fa0b6e0bc8a24046dc4f12f5272b6224185e5daa67441bb11e8");                
             }
         }
@@ -152,6 +155,7 @@ namespace nebulae.rng
         {
             lock (_lock)
             {
+                ClearBanks();
                 InternalJump("4ac54a5962a2cc857261a61127b93d83a28e7b70072f6082ccb6a9c9ec62a812");
             }
         }

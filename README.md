@@ -80,7 +80,7 @@ Constructors will throw exceptions if used unseeded (0 or empty arrays). The fla
 
 All integer functions support bias elimination using modulo rejection sampling. Multiple random numbers may be consumed (burned) if the generated value falls outside the acceptable modular range.
 
-1. `RandN(_size_ Max)`, where N is 64/32/16/8. Returns an unsigned integer in the range [0, Max] (inclusive).
+1. `RandN(_size_ Max)`, where N is 64/32/16/8. Returns an unsigned integer in the range [0, Max] (inclusive). Omitting Max or passing zero requests the full unsigned type range; use `RangedRandN(0, 0)` for a constant zero.
 2. `RandNS(_size_ Max)` Returns a signed integer in the range [T.MinValue, Max], where T is the signed integer type of _size_.
 3. `RangedRandN(_size_ Min, _size_ Max)` Returns an unsigned integer in the range [Min, Max].
 4. `RangedRandNS(_size_ Min, _size_ Max)` Returns a signed integer in the range [Min, Max].
@@ -88,7 +88,7 @@ All integer functions support bias elimination using modulo rejection sampling. 
 
 ### Double RNG Methods:
 
-1. `RandDoubleExclusiveZero()` Uses full 53-bit precision. Excludes 0.0 to prevent edge cases in logarithmic or exponential sampling. Minzero defines the minimum representable nonzero value, defaulting to 2^-53 \~1.11e-16.
+1. `RandDoubleExclusiveZero()` Samples the 53-bit grid in (0.0, 1.0), rejecting zero. The smallest possible result is 2^-53 (~1.11e-16).
 2. `RandDoubleInclusiveZero()` Returns a double in the range [0.0, 1.0). This matches the behavior of System.Random.NextDouble() and includes 0.0.
 3. `RandDoubleLinear(double Min, double Max)` Returns a double in [Min, Max) using linear interpolation. Safe for general-purpose simulations and float-based algorithms.
 4. `RandDoubleRaw(double Min, double Max, double MinZero = MINZERO_DEFAULT)` Constructs a raw IEEE-754 double between min and max. Gives full control over sign, exponent, and mantissa layout. Both min and max must be either normal or subnormal doubles. Mixing types throws. Not intended for casual use; this is a precision tool.
@@ -105,12 +105,16 @@ MINZERO_DEFAULT is available as a public constant in each RNG and is equal to 1.
 
 ### System.Random Compatibility:
 
-1. `Next()`: returns a 32-bit unsigned integer in the range [0, 2^32)
-2. `Next(int Max)`: returns a 32-bit unsigned integer in the range [0, Max)
-3. `Next(int Min, int Max)`: returns a 32-bit unsigned integer in the range [Min, Max)
+1. `Next()`: returns an `int` in [0, int.MaxValue).
+2. `Next(int Max)`: returns an `int` in [0, Max); returns zero when Max is zero and throws for negative Max.
+3. `Next(int Min, int Max)`: returns an `int` in [Min, Max); returns Min when the bounds are equal and throws when Min > Max.
 4. `NextDouble()`: Returns a double in [0.0, 1.0). Internally calls RandDoubleInclusiveZero().
 
 #### When pulling a data type smaller than 64-bits, the remaining bytes of the 8-byte chunk are banked until you request that same type size again.
+
+Cloning preserves these cached values and their order. Reseeding and supported jumps discard them, so subsequent calls use the new state.
+
+Compatibility note: corrections to bounded sampling, `Next`, and `RandDoubleExclusiveZero` change some derived output sequences. Raw generator reference sequences are preserved. PCG64 jumps now advance by the documented 2^64 and 2^96 steps using the selected stream.
 
 ---
 
@@ -138,7 +142,7 @@ PCG32 rng2 = new PCG32();
 var random_double = rng2.NextDouble();
 
 // Using System.Random API
-var next = rng2.Next();       // [0, uint.MaxValue)
+var next = rng2.Next();       // [0, int.MaxValue)
 var next2 = rng2.Next(0x5555) // [0, 0x5555)
 
 // Jump functions
@@ -148,13 +152,13 @@ var rng3 = rng.Clone();
 var rng4 = rng.Clone();
 
 // Demonstration
-rng.LongJump(); // advance 2^384 iterations
-rng2.Jump(); // advance 2^256 iterations
+rng.LongJump(); // advance 2^768 iterations
+rng2.Jump(); // advance 2^512 iterations
 rng3.Jump(); rng3.Jump(); // etc.
 rng4.Jump(); rng4.Jump(); rng4.Jump(); // etc.
 
-// now rng2, rng3 & rng4 are equally spaced by 2^256 steps each,
-// and rng is spaced out to 2^384 steps from the start, all with the same seed.
+// now rng2, rng3 & rng4 are equally spaced by 2^512 steps each,
+// and rng is spaced out to 2^768 steps from the start, all with the same seed.
 
 ```
 ---

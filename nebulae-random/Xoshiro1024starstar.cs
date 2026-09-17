@@ -50,9 +50,6 @@ namespace nebulae.rng
         private ulong[] _state = new ulong[16];
         private int _p = 0;
 
-        // concurrency lock
-        private readonly object _lock = new object();
-
         /// <summary>
         /// Clone() clones the internal context of the rng object and returns a new rng object
         /// This is useful to split the same rng object into multiple rng objects to take
@@ -75,9 +72,7 @@ namespace nebulae.rng
                     copy._state[i] = this._state[i];
                 }
 
-                copy._banked8 = new ConcurrentStack<byte>(this._banked8);
-                copy._banked16 = new ConcurrentStack<ushort>(this._banked16);
-                copy._banked32 = new ConcurrentStack<uint>(this._banked32);
+                CopyBanksTo(copy);
             }
             return copy;
         }
@@ -133,6 +128,8 @@ namespace nebulae.rng
 #endif
             lock (_lock)
             {
+                ClearBanks();
+                _p = 0;
                 var bytes_array = MemoryMarshal.Cast<byte, ulong>(bytes);
 
                 for (int i = 0; i < _state.Length; ++i)
@@ -154,6 +151,8 @@ namespace nebulae.rng
 
             lock (_lock)
             {
+                ClearBanks();
+                _p = 0;
                 for (int i = 0; i < Math.Min(seeds.Length, 16); ++i)
                 {
                     _state[i] = seeds[i];
@@ -172,6 +171,8 @@ namespace nebulae.rng
 
             lock (_lock)
             {
+                ClearBanks();
+                _p = 0;
                 var bytes_array = MemoryMarshal.Cast<byte, ulong>(seed);
                 for (int i = 0; i < _state.Length; ++i)
                 {
@@ -210,13 +211,14 @@ namespace nebulae.rng
         }
 
         /// <summary>
-        /// Jump() moves the RNG sequence ahead by 2^256 steps.
+        /// Jump() moves the RNG sequence ahead by 2^512 steps.
         /// </summary>
         public override void Jump()
         {
             lock (_lock)
             {
-                ulong[] t = new ulong[8];
+                ClearBanks();
+                ulong[] t = new ulong[_state.Length];
 
                 for (int i = 0; i < _jump_seeds.Length; ++i)
                 {
@@ -237,13 +239,14 @@ namespace nebulae.rng
         }
 
         /// <summary>
-        /// LongJump() moves the RNG sequence ahead by 2^384 steps.
+        /// LongJump() moves the RNG sequence ahead by 2^768 steps.
         /// </summary>
         public override void LongJump()
         {
             lock (_lock)
             {
-                ulong[] t = new ulong[8];
+                ClearBanks();
+                ulong[] t = new ulong[_state.Length];
 
                 for (int i = 0; i < _long_jump_seeds.Length; ++i)
                 {

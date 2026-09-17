@@ -14,7 +14,6 @@ namespace nebulae.rng
         private ulong _z;
         private ulong _c;
 
-        private static readonly object _lock = new object();
 
         /// <summary>
         /// Clone() clones the internal context of the rng object and returns a new rng object
@@ -33,6 +32,7 @@ namespace nebulae.rng
                 clone._y = _y;
                 clone._z = _z;
                 clone._c = _c;
+                CopyBanksTo(clone);
                 return clone;
             }
         }
@@ -58,7 +58,7 @@ namespace nebulae.rng
         /// <returns>the constructed & seeded rng</returns>
         public MWC256(ulong seed_lo, ulong seed_mid, ulong seed_hi, bool allowZeroSeed = false)
         {
-            Reseed(seed_lo, seed_mid, seed_hi);
+            Reseed(seed_lo, seed_mid, seed_hi, allowZeroSeed);
         }
 
         /// <summary>
@@ -73,6 +73,7 @@ namespace nebulae.rng
 
             lock (_lock)
             {
+                ClearBanks();
                 for (int i = 0; i < 3; ++i)
                 {
                     byte[] seedBytes = new byte[8];
@@ -103,6 +104,7 @@ namespace nebulae.rng
 
             lock (_lock)
             {
+                ClearBanks();
                 _x = seed_lo;
                 _y = seed_mid;
                 _z = seed_hi;
@@ -140,6 +142,7 @@ namespace nebulae.rng
         {
             lock (_lock)
             {
+                ClearBanks();
                 const string R_HEX = "4b89aa2cd51c37b9f6f8c3fd02ec98fbfe88c291203b225428c3ff11313847eb";
                 ApplyMWC256Jump(R_HEX);
             }
@@ -154,6 +157,7 @@ namespace nebulae.rng
         {
             lock (_lock)
             {
+                ClearBanks();
                 const string R_HEX = "0af5ca22408cdc8306c40ce860e0d702f95382f758ac987764c6e39cf92f77a4";
                 ApplyMWC256Jump(R_HEX);
             }

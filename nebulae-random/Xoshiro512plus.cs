@@ -33,9 +33,6 @@ namespace nebulae.rng
 
         private ulong[] _state = new ulong[8];
 
-        // concurrency lock
-        private readonly object _lock = new object();
-
         /// <summary>
         /// Clone() clones the internal context of the rng object and returns a new rng object
         /// This is useful to split the same rng object into multiple rng objects to take
@@ -56,9 +53,7 @@ namespace nebulae.rng
                     copy._state[i] = this._state[i];
                 }
 
-                copy._banked8 = new ConcurrentStack<byte>(this._banked8);
-                copy._banked16 = new ConcurrentStack<ushort>(this._banked16);
-                copy._banked32 = new ConcurrentStack<uint>(this._banked32);
+                CopyBanksTo(copy);
             }
             return copy;
         }
@@ -114,6 +109,7 @@ namespace nebulae.rng
 #endif
             lock (_lock)
             {
+                ClearBanks();
                 var bytes_array = MemoryMarshal.Cast<byte, ulong>(bytes);
                 for (int i = 0; i < _state.Length; ++i)
                 {
@@ -134,6 +130,7 @@ namespace nebulae.rng
 
             lock (_lock)
             {
+                ClearBanks();
                 for (int i = 0; i < Math.Min(seeds.Length, 8); ++i)
                 {
                     _state[i] = seeds[i];
@@ -152,6 +149,7 @@ namespace nebulae.rng
 
             lock (_lock)
             {
+                ClearBanks();
                 var bytes_array = MemoryMarshal.Cast<byte, ulong>(seed);
                 for (int i = 0; i < _state.Length; ++i)
                 {
@@ -202,6 +200,7 @@ namespace nebulae.rng
         {
             lock (_lock)
             {
+                ClearBanks();
                 ulong[] t = new ulong[8];
 
                 for (int i = 0; i < _jump_seeds.Length; ++i)
@@ -229,6 +228,7 @@ namespace nebulae.rng
         {
             lock (_lock)
             {
+                ClearBanks();
                 ulong[] t = new ulong[8];
 
                 for (int i = 0; i < _long_jump_seeds.Length; ++i)

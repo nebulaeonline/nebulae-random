@@ -15,6 +15,30 @@ namespace nebulae.rng
 
         public const double MINZERO_DEFAULT = 1.0 / (1UL << 53);
 
+        // All generator state and cached samples use the same per-instance lock.
+        protected readonly object _lock = new object();
+
+        protected void ClearBanks()
+        {
+            _banked8.Clear();
+            _banked16.Clear();
+            _banked32.Clear();
+        }
+
+        protected void CopyBanksTo(BaseRng copy)
+        {
+            copy._banked8 = CopyBank(_banked8);
+            copy._banked16 = CopyBank(_banked16);
+            copy._banked32 = CopyBank(_banked32);
+        }
+
+        private static ConcurrentStack<T> CopyBank<T>(ConcurrentStack<T> bank)
+        {
+            T[] values = bank.ToArray();
+            Array.Reverse(values); // Stack enumeration is top first; construction pushes in order.
+            return new ConcurrentStack<T>(values);
+        }
+
         protected ConcurrentStack<uint> _banked32 = new ConcurrentStack<uint>();
         protected ConcurrentStack<ushort> _banked16 = new ConcurrentStack<ushort>();
         protected ConcurrentStack<byte> _banked8 = new ConcurrentStack<byte>();
@@ -60,7 +84,7 @@ namespace nebulae.rng
         /// </summary>
         public int Next()
         {
-            return (int)(Rand32() & 0x7FFFFFFF);
+            return (int)RangedRand32(0, int.MaxValue - 1);
         }
 
         /// <summary>
@@ -69,8 +93,9 @@ namespace nebulae.rng
         /// </summary>
         public int Next(int max)
         {
-            if (max <= 0) throw new ArgumentOutOfRangeException(nameof(max));
-            return (int)(Rand32((uint)(max - 1)) & 0x7FFFFFFF);
+            if (max < 0) throw new ArgumentOutOfRangeException(nameof(max));
+            if (max == 0) return 0;
+            return (int)RangedRand32(0, (uint)(max - 1));
         }
 
         /// <summary>
@@ -79,7 +104,7 @@ namespace nebulae.rng
         /// </summary>
         public int Next(int min, int max)
         {
-            if (min > max) (max, min) = (min, max);
+            if (min > max) throw new ArgumentOutOfRangeException(nameof(min));
             if (min == max) return min;
             return RangedRand32S(min, max - 1);
         }
@@ -94,16 +119,14 @@ namespace nebulae.rng
         }
 
         /// <summary>
+        /// A Max of zero requests the full type range (legacy sentinel).
         /// Rand64() returns an unsigned 64-bit integer in the range [0, Max] (inclusive)
         /// </summary>
         /// <param name="Max">ulong Max - the maximum random number to return</param>
         /// <returns>ulong</returns>
         public ulong Rand64(ulong Max = 0)
         {
-            if (Max == ulong.MaxValue) Max = 0;
-
-            ulong ul = NextRaw64();
-            return (Max == 0) ? ul : ul % ++Max;
+            return Max == 0 || Max == ulong.MaxValue ? NextRaw64() : RangedRand64(0, Max);
         }
 
         /// <summary>
@@ -163,23 +186,26 @@ namespace nebulae.rng
         }
 
         /// <summary>
+        /// A Max of zero requests the full type range (legacy sentinel).
         /// Rand32() returns an unsigned 32-bit integer in the range [0, Max] (inclusive)
         /// </summary>
         /// <param name="Max">uint Max - the maximum random number to return</param>
         /// <returns>uint</returns>
         public uint Rand32(uint Max = 0)
         {
-            if (Max == uint.MaxValue) Max = 0;
+            lock (_lock)
+            {
+                if (Max != 0 && Max != uint.MaxValue) return RangedRand32(0, Max);
 
-            if (_banked32.TryPop(out uint ui))
-                return (Max == 0) ? ui : ui % ++Max;
+                if (_banked32.TryPop(out uint ui))
+                    return ui;
 
-            ulong ul = NextRaw64();
-            uint lo = (uint)(ul & 0xFFFFFFFF);
-            _banked32.Push(lo);
+                ulong ul = NextRaw64();
+                uint lo = (uint)(ul & 0xFFFFFFFF);
+                _banked32.Push(lo);
 
-            return (Max == 0) ? (uint)(ul >> 32) : (uint)(ul >> 32) % ++Max;
-     
+                return (uint)(ul >> 32);
+            }
         }
 
         /// <summary>
@@ -227,7 +253,7 @@ namespace nebulae.rng
             if (Min == Max) return Min;
             if (Min > Max) (Min, Max) = (Max, Min);
 
-            ulong range = (ulong)(Max - Min) + 1;
+            ulong range = (ulong)((long)Max - Min) + 1;
             if (range == 0) return (int)Rand32();
 
             ulong threshold = (1UL << 32) - ((1UL << 32) % range);
@@ -239,28 +265,32 @@ namespace nebulae.rng
         }
 
         /// <summary>
+        /// A Max of zero requests the full type range (legacy sentinel).
         /// Rand16() returns an unsigned 16-bit integer in the range [0, Max] (inclusive)
         /// </summary>
         /// <param name="Max">ushort Max - the maximum random number to return</param>
         /// <returns>ushort</returns>
         public ushort Rand16(ushort Max = 0)
         {
-            if (Max == ushort.MaxValue) Max = 0;
+            lock (_lock)
+            {
+                if (Max != 0 && Max != ushort.MaxValue) return RangedRand16(0, Max);
 
-            if (_banked16.TryPop(out ushort us))
-                return (Max == 0) ? us : (ushort)(us % ++Max);
+                if (_banked16.TryPop(out ushort us))
+                    return us;
 
-            var r64 = NextRaw64();
+                var r64 = NextRaw64();
 
-            // Push lower bits first (0–15), then (16–31), then (32–47)
-            _banked16.Push((ushort)((r64 >> 0) & 0xFFFF));   // bits 0–15
-            _banked16.Push((ushort)((r64 >> 16) & 0xFFFF));  // bits 16–31
-            _banked16.Push((ushort)((r64 >> 32) & 0xFFFF));  // bits 32–47
+                // Push lower bits first (0–15), then (16–31), then (32–47)
+                _banked16.Push((ushort)((r64 >> 0) & 0xFFFF));   // bits 0–15
+                _banked16.Push((ushort)((r64 >> 16) & 0xFFFF));  // bits 16–31
+                _banked16.Push((ushort)((r64 >> 32) & 0xFFFF));  // bits 32–47
 
-            // Now take bits 48–63 immediately
-            ushort us2 = (ushort)((r64 >> 48) & 0xFFFF);
+                // Now take bits 48–63 immediately
+                ushort us2 = (ushort)((r64 >> 48) & 0xFFFF);
 
-            return (Max == 0) ? us2 : (ushort)((uint)us2 % ++Max);
+                return us2;
+            }
         }
 
         /// <summary>
@@ -320,29 +350,33 @@ namespace nebulae.rng
         }
 
         /// <summary>
+        /// A Max of zero requests the full type range (legacy sentinel).
         /// Rand8() returns an unsigned 8-bit integer in the range [0, Max] (inclusive)
         /// </summary>
         /// <param name="Max">byte Max - the maximum random number to return</param>
         /// <returns>byte</returns>
         public byte Rand8(byte Max = 0)
         {
-            if (Max == byte.MaxValue) Max = 0;
-
-            if (_banked8.TryPop(out byte ub))
-                return (Max == 0) ? ub : (byte)(ub % ++Max);
-
-            var r64 = NextRaw64();
-
-            // Push lower bytes first (0–7, 8–15, ..., 48–55)
-            for (int i = 0; i < 7; i++)
+            lock (_lock)
             {
-                _banked8.Push((byte)((r64 >> (i * 8)) & 0xFF));
+                if (Max != 0 && Max != byte.MaxValue) return RangedRand8(0, Max);
+
+                if (_banked8.TryPop(out byte ub))
+                    return ub;
+
+                var r64 = NextRaw64();
+
+                // Push lower bytes first (0–7, 8–15, ..., 48–55)
+                for (int i = 0; i < 7; i++)
+                {
+                    _banked8.Push((byte)((r64 >> (i * 8)) & 0xFF));
+                }
+
+                // Now take highest 8 bits (56–63) immediately
+                byte ub2 = (byte)((r64 >> 56) & 0xFF);
+
+                return ub2;
             }
-
-            // Now take highest 8 bits (56–63) immediately
-            byte ub2 = (byte)((r64 >> 56) & 0xFF);
-
-            return (Max == 0) ? ub2 : (byte)((uint)ub2 % ++Max);
         }
 
         /// <summary>
@@ -432,6 +466,9 @@ namespace nebulae.rng
             if (charset.Count == 0)
                 throw new ArgumentException("You must enable at least one character group or pass custom symbols.");
 
+            if (charset.Count > 256)
+                return charset[(int)RangedRand32(0, (uint)charset.Count - 1)];
+
             // Rejection sampling to remove bias
             byte rnd;
             int count = charset.Count;
@@ -455,14 +492,14 @@ namespace nebulae.rng
         }
 
         /// <summary>
-        /// RandDouble() returns a double between (0.0, 1.0)
+        /// Returns a double between (0.0, 1.0), using 53 random bits and rejecting zero.
         /// </summary>
-        /// <param name="minzero">double minzero - the minimum value which will be considered 0.0
-        /// to avoid range compression (default is 1.0 / (1UL << 53))</param>
         /// <returns>double</returns>
         public double RandDoubleExclusiveZero()
         {
-            return RandDoubleRaw(1.0, 2.0) - 1.0;
+            double value;
+            do { value = RandDoubleInclusiveZero(); } while (value == 0.0);
+            return value;
         }
 
         /// <summary>

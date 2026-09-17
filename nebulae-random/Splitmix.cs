@@ -10,7 +10,6 @@ namespace nebulae.rng
     {
         private ulong _state;
 
-        private readonly object _lock = new object();
 
         /// <summary>
         /// Clone() clones the internal context of the rng object and returns a new rng object
@@ -22,7 +21,12 @@ namespace nebulae.rng
         /// Clone() was called on</returns>
         public override INebulaeRng Clone()
         {
-            return new Splitmix(_state);
+            lock (_lock)
+            {
+                var copy = new Splitmix(_state, true);
+                CopyBanksTo(copy);
+                return copy;
+            }
         }
 
         /// <summary>
@@ -68,7 +72,11 @@ namespace nebulae.rng
             if (seed == 0 && !allowZeroSeed)
                 throw new ArgumentException("Seed cannot be zero unless allowZeroSeed is true.");
 
-            _state = seed;
+            lock (_lock)
+            {
+                ClearBanks();
+                _state = seed;
+            }
         }
 
         /// Reseed() reseeds the rng object
@@ -88,6 +96,7 @@ namespace nebulae.rng
 #endif
             lock (_lock)
             {
+                ClearBanks();
                 var bytes_array = MemoryMarshal.Cast<byte, ulong>(bytes);
                 _state = bytes_array[0];
             }

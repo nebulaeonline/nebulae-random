@@ -12,9 +12,6 @@ namespace nebulae.rng
         private const int ISAAC64_SZ_8 = (int)(ISAAC64_SZ_64 << 2);
         private const ulong IND_MASK = (ulong)(((ISAAC64_SZ_64) - 1) << 3);
 
-        // concurrency lock
-        private readonly object _lock = new object();
-
         // for mix
         private static readonly int[] MIX_SHIFT = { 9, 9, 23, 15, 14, 20, 17, 14 };
 
@@ -68,9 +65,7 @@ namespace nebulae.rng
             {
                 copy = new Isaac64(true); // testing constructor; does not reseed
                 copy._ctx = this._ctx.Clone(); // manually assign copied context
-                copy._banked8 = new ConcurrentStack<byte>(this._banked8);
-                copy._banked16 = new ConcurrentStack<ushort>(this._banked16);
-                copy._banked32 = new ConcurrentStack<uint>(this._banked32);
+                CopyBanksTo(copy);
             }
             return copy;
         }
@@ -224,6 +219,8 @@ namespace nebulae.rng
         {
             lock (_lock)
             {
+                if (numericSeed == 0 && !allowZeroSeed)
+                    throw new ArgumentException("Seed cannot be zero unless allowZeroSeed is true.");
                 clear_state();
                 if (allowZeroSeed && numericSeed == 0)
                     init(true);
@@ -272,7 +269,8 @@ namespace nebulae.rng
         // clear the rng state
         private void clear_state()
         {
-            for (int i = 0; i < ISAAC64_SZ_64; i++) _ctx.rng_state[i] = (ulong)0;
+            _ctx = new Context();
+            ClearBanks();
         }
 
         // sets the curptr in the rng_buf back to max
